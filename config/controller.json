@@ -1,0 +1,18 @@
+{
+    "network": {
+        "esp32_ip": "192.168.50.2",
+        "udp_port": 5005,
+        "packet_rate": 50
+    },
+    "controller": {
+        "deadzone": 0.10,
+        "invert_throttle": true,
+        "invert_steering": false,
+        "max_speed": 100,
+        "acceleration_step": 10
+    },
+    "safety": {
+        "failsafe_ms": 300,
+        "emergency_buttons": ["BTN_START", "BTN_SELECT"]
+    }
+}

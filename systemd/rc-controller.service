@@ -1,0 +1,17 @@
+[Unit]
+Description=Wi-Fi RC Controller Service (Raspberry Pi 3)
+After=network.target network-online.target hostapd.service NetworkManager.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/rc-controller
+ExecStart=/usr/bin/python3 /opt/rc-controller/src/main.py
+Restart=on-failure
+RestartSec=3s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

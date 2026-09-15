@@ -1,0 +1,29 @@
+# Wi-Fi Access Point Configuration Examples for Raspberry Pi 3
+# System subnet: 192.168.50.0/24
+# Raspberry Pi IP: 192.168.50.1
+# Target ESP32 IP: 192.168.50.2 (via DHCP or static lease)
+
+# --- Option A: NetworkManager (Modern Raspberry Pi OS Bookworm / Bullseye) ---
+# Create AP using nmcli command:
+# nmcli device wifi hotspot ifname wlan0 ssid RC-CONTROLLER password "RCController123"
+
+# --- Option B: hostapd (/etc/hostapd/hostapd.conf) ---
+# interface=wlan0
+# driver=nl80211
+# ssid=RC-CONTROLLER
+# hw_mode=g
+# channel=7
+# wmm_enabled=0
+# macaddr_acl=0
+# auth_algs=1
+# ignore_broadcast_ssid=0
+# wpa=2
+# wpa_passphrase=RCController123
+# wpa_key_mgmt=WPA-PSK
+# wpa_pairwise=TKIP
+# rsn_pairwise=CCMP
+
+# --- Option B: dnsmasq (/etc/dnsmasq.conf) ---
+# interface=wlan0
+# dhcp-range=192.168.50.2,192.168.50.20,255.255.255.0,24h
+# dhcp-host=AA:BB:CC:DD:EE:FF,192.168.50.2  # Optional static DHCP binding for ESP32 MAC
