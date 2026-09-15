@@ -49,14 +49,30 @@ if command -v nmcli &> /dev/null && systemctl is-active --quiet NetworkManager; 
     rfkill unblock all &> /dev/null || true
     nmcli radio wifi on &> /dev/null || true
 
+    # Disable autoconnect on existing WiFi connections so they don't hijack wlan0
+    for conn in $(nmcli -t -f NAME,TYPE connection show | grep ':802-11-wireless' | cut -d: -f1); do
+        if [ "$conn" != "RC-HOTSPOT" ] && [ "$conn" != "Hotspot" ]; then
+            echo "[INFO] Disabling competing connection: $conn"
+            nmcli connection modify "$conn" connection.autoconnect no &> /dev/null || true
+            nmcli connection down "$conn" &> /dev/null || true
+        fi
+    done
+
+    # Clean previous hotspot profiles
     nmcli connection delete RC-HOTSPOT &> /dev/null || true
-    nmcli connection add type wifi ifname "$WLAN_IF" con-name RC-HOTSPOT autoconnect yes ssid RC-CONTROLLER
-    nmcli connection modify RC-HOTSPOT 802-11-wireless.mode ap
-    nmcli connection modify RC-HOTSPOT 802-11-wireless.band bg
-    nmcli connection modify RC-HOTSPOT 802-11-wireless-security.key-mgmt wpa-psk
-    nmcli connection modify RC-HOTSPOT 802-11-wireless-security.psk "RCController123"
-    nmcli connection modify RC-HOTSPOT ipv4.method shared ipv4.addresses 192.168.50.1/24
-    nmcli connection modify RC-HOTSPOT ipv6.method disabled
+    nmcli connection delete Hotspot &> /dev/null || true
+
+    # Create & start hotspot
+    echo "[INFO] Starting Hotspot AP..."
+    nmcli device wifi hotspot ifname "$WLAN_IF" ssid RC-CONTROLLER password "RCController123" channel 7 band bg &> /dev/null || \
+    nmcli device wifi hotspot ifname "$WLAN_IF" ssid RC-CONTROLLER password "RCController123" &> /dev/null || true
+
+    if nmcli connection show "Hotspot" &>/dev/null; then
+        nmcli connection modify Hotspot connection.id RC-HOTSPOT &> /dev/null || true
+    fi
+
+    nmcli connection modify RC-HOTSPOT ipv4.addresses 192.168.50.1/24 ipv4.method shared &> /dev/null || true
+    nmcli connection modify RC-HOTSPOT connection.autoconnect yes &> /dev/null || true
     nmcli connection up RC-HOTSPOT || true
 else
     echo "[INFO] Unblocking Wi-Fi radio..."
