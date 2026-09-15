@@ -46,7 +46,14 @@ if command -v nmcli &> /dev/null && systemctl is-active --quiet NetworkManager; 
     nmcli connection modify RC-HOTSPOT ipv4.addresses 192.168.50.1/24 ipv4.method shared || true
     nmcli connection up RC-HOTSPOT || true
 else
+    echo "[INFO] Unblocking Wi-Fi radio..."
+    rfkill unblock wifi || true
+    rfkill unblock all || true
+
     echo "[INFO] Using hostapd / dnsmasq for Access Point setup..."
+    sed -i 's|#DAEMON_CONF=""|DAEMON_CONF="/etc/hostapd/hostapd.conf"|g' /etc/default/hostapd || true
+    echo 'DAEMON_CONF="/etc/hostapd/hostapd.conf"' > /etc/default/hostapd || true
+
     cat <<EOF > /etc/dhcpcd.conf
 interface wlan0
     static ip_address=192.168.50.1/24
